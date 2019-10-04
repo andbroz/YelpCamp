@@ -16,7 +16,7 @@ mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 
 //connect to local data base
-mongoose.connect("mongodb://localhost/yelp_camp");
+mongoose.connect("mongodb://localhost:27017/yelp_camp");
 
 var bodyParser = require("body-parser");
 
@@ -31,7 +31,8 @@ app.use(bodyParser.urlencoded({
 
 var campgroundSchema = new mongoose.Schema({
   name: String,
-  image: String
+  image: String,
+  description: String
 });
 
 // compile schema in to model with methods
@@ -49,7 +50,7 @@ app.get("/campgrounds", (req, res) => {
     if (err) {
       console.log(err);
     } else {
-      res.render("campgrounds", {
+      res.render("index", {
         campgrounds: allCampgrounds
       });
     }
@@ -60,9 +61,11 @@ app.post("/campgrounds", (req, res) => {
   //get data from form and add to campgrounds
   let name = req.body.name;
   let image = req.body.image;
+  let description = req.body.description;
   let newCampground = {
     name: name,
-    image: image
+    image: image,
+    description: description
   }
 
   //Create a new campground and save to DB
@@ -74,12 +77,24 @@ app.post("/campgrounds", (req, res) => {
       res.redirect("/campgrounds");
     }
   });
-
-
 });
 
 app.get("/campgrounds/new", (req, res) => {
   res.render("new");
+});
+
+//wazna jest kolejnosc tej sciezki. musi byc po scieze /campgrounds/new
+app.get("/campgrounds/:id", (req, res) => {
+  let id = req.params.id
+  Campground.findById(id, function (err, foundCampground) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render("show", {
+        campground: foundCampground
+      });
+    }
+  });
 });
 
 app.listen(port, () => {
