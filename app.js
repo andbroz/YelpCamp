@@ -5,6 +5,19 @@ const express = require("express");
 const app = express();
 const port = 3000;
 
+
+// Add mongoose.js module
+const mongoose = require("mongoose");
+
+//set parameteres to remove deprecation message
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
+mongoose.set('useUnifiedTopology', true);
+
+//connect to local data base
+mongoose.connect("mongodb://localhost/yelp_camp");
+
 var bodyParser = require("body-parser");
 
 app.set("view engine", "ejs");
@@ -14,19 +27,15 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
-let campgrounds = [{
-    name: "Salmon Creek",
-    image: "https://cdn.pixabay.com/photo/2017/06/17/03/17/gongga-snow-mountain-2411069__340.jpg"
-  },
-  {
-    name: "Granite Hill",
-    image: "https://cdn.pixabay.com/photo/2016/09/18/18/18/tent-camping-1678714__340.jpg"
-  },
-  {
-    name: "Radawa",
-    image: "https://cdn.pixabay.com/photo/2013/09/16/19/15/camp-182951__340.jpg"
-  }
-];
+// Schema setup
+
+var campgroundSchema = new mongoose.Schema({
+  name: String,
+  image: String
+});
+
+// compile schema in to model with methods
+var Campground = mongoose.model("Campground", campgroundSchema);
 
 app.get("/", (req, res) => {
   res.render("landing");
@@ -34,9 +43,16 @@ app.get("/", (req, res) => {
 
 app.get("/campgrounds", (req, res) => {
 
+  //get all campgrounds from database
 
-  res.render("campgrounds", {
-    campgrounds: campgrounds
+  Campground.find({}, function (err, allCampgrounds) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render("campgrounds", {
+        campgrounds: allCampgrounds
+      });
+    }
   });
 });
 
@@ -49,9 +65,15 @@ app.post("/campgrounds", (req, res) => {
     image: image
   }
 
-  campgrounds.push(newCampground);
-  //redirect back to campgrounds page
-  res.redirect("/campgrounds");
+  //Create a new campground and save to DB
+  Campground.create(newCampground, (err, newlyCreated) => {
+    if (err) {
+      console.log(err);
+    } else {
+      //redirect back to campgrounds page
+      res.redirect("/campgrounds");
+    }
+  });
 
 
 });
