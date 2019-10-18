@@ -1,90 +1,91 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-console */
-const express = require("express");
-const mongoose = require("mongoose");
-var Campground = require("./models/campground");
-var Comment = require("./models/comment");
-var bodyParser = require("body-parser");
-var seedDB = require("./seeds");
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const Campground = require('./models/campground');
+const Comment = require('./models/comment');
+const seedDB = require('./seeds');
 
 const app = express();
 const port = 3000;
 
-//set parameteres to remove deprecation message
-mongoose.set("useNewUrlParser", true);
-mongoose.set("useFindAndModify", false);
-mongoose.set("useCreateIndex", true);
-mongoose.set("useUnifiedTopology", true);
+// set parameteres to remove deprecation message
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
+mongoose.set('useUnifiedTopology', true);
 
-//connect to local data base
-mongoose.connect("mongodb://localhost:27017/yelp_camp");
+// connect to local data base
+mongoose.connect('mongodb://localhost:27017/yelp_camp');
 
-app.set("view engine", "ejs");
-app.use(express.static(__dirname + "/public"));
+app.set('view engine', 'ejs');
+app.use(express.static(`${__dirname}/public`));
 app.use(
   bodyParser.urlencoded({
-    extended: true
-  })
+    extended: true,
+  }),
 );
 
 seedDB();
 
 // ROUTES
 
-app.get("/", (req, res) => {
-  res.render("landing");
+app.get('/', (req, res) => {
+  res.render('landing');
 });
 
-app.get("/campgrounds", (req, res) => {
-  //get all campgrounds from database
+app.get('/campgrounds', (req, res) => {
+  // get all campgrounds from database
 
-  Campground.find({}, function(err, allCampgrounds) {
+  Campground.find({}, (err, allCampgrounds) => {
     if (err) {
       console.log(err);
     } else {
-      res.render("campgrounds/index", {
-        campgrounds: allCampgrounds
+      res.render('campgrounds/index', {
+        campgrounds: allCampgrounds,
       });
     }
   });
 });
 
-app.post("/campgrounds", (req, res) => {
-  //get data from form and add to campgrounds
-  let name = req.body.name;
-  let image = req.body.image;
-  let description = req.body.description;
-  let newCampground = {
-    name: name,
-    image: image,
-    description: description
+app.post('/campgrounds', (req, res) => {
+  // get data from form and add to campgrounds
+  const { name } = req.body;
+  const { image } = req.body;
+  const { description } = req.body;
+  const newCampground = {
+    name,
+    image,
+    description,
   };
 
-  //Create a new campground and save to DB
+  // Create a new campground and save to DB
   Campground.create(newCampground, (err, newlyCreated) => {
     if (err) {
-      console.log(err);
+      console.log(err, newlyCreated);
     } else {
-      //redirect back to campgrounds page
-      res.redirect("/campgrounds");
+      // redirect back to campgrounds page
+      res.redirect('/campgrounds');
     }
   });
 });
 
-app.get("/campgrounds/new", (req, res) => {
-  res.render("campgrounds/new");
+app.get('/campgrounds/new', (req, res) => {
+  res.render('campgrounds/new');
 });
 
 // SHOW ROUTE - wazna jest kolejnosc tej sciezki. musi byc po scieze /campgrounds/new
-app.get("/campgrounds/:id", (req, res) => {
-  let id = req.params.id;
+app.get('/campgrounds/:id', (req, res) => {
+  const { id } = req.params;
   Campground.findById(id)
-    .populate("comments")
-    .exec(function(err, foundCampground) {
+    .populate('comments')
+    .exec((err, foundCampground) => {
       if (err) {
         console.log(err);
       } else {
-        res.render("campgrounds/show", {
-          campground: foundCampground
+        res.render('campgrounds/show', {
+          campground: foundCampground,
         });
       }
     });
@@ -94,29 +95,29 @@ app.get("/campgrounds/:id", (req, res) => {
 // COMMENTS ROUTES
 // =======================================
 
-app.get("/campgrounds/:id/comments/new", function(req, res) {
-  Campground.findById(req.params.id, function(err, campground) {
+app.get('/campgrounds/:id/comments/new', (req, res) => {
+  Campground.findById(req.params.id, (err, campground) => {
     if (err) {
       console.log(err);
     } else {
-      res.render("comments/new", { campground: campground });
+      res.render('comments/new', { campground });
     }
   });
 });
 
-app.post("/campgrounds/:id/comments/", (req, res) => {
-  Campground.findById(req.params.id, function(err, campground) {
+app.post('/campgrounds/:id/comments/', (req, res) => {
+  Campground.findById(req.params.id, (err, campground) => {
     if (err) {
       console.log(err);
-      res.redirect("/campgrounds");
+      res.redirect('/campgrounds');
     } else {
-      Comment.create(req.body.comment, (err, comment) => {
-        if (err) {
-          console.log(err);
+      Comment.create(req.body.comment, (err2, comment) => {
+        if (err2) {
+          console.log(err2);
         } else {
           campground.comments.push(comment);
           campground.save();
-          res.redirect("/campgrounds/" + campground._id);
+          res.redirect(`/campgrounds/${campground._id}`);
         }
       });
     }
