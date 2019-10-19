@@ -2,9 +2,13 @@
 /* eslint-disable no-console */
 const express = require('express');
 const mongoose = require('mongoose');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+
 const bodyParser = require('body-parser');
 const Campground = require('./models/campground');
 const Comment = require('./models/comment');
+const User = require('./models/user');
 const seedDB = require('./seeds');
 
 const app = express();
@@ -24,16 +28,38 @@ app.use(express.static(`${__dirname}/public`));
 app.use(
   bodyParser.urlencoded({
     extended: true,
-  }),
+  })
 );
 
 seedDB();
+
+// PASSPORT CONFIGURATION
+app.use(
+  require('express-session')({
+    secret: 'rusty is cute sausage',
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+app.use(function(req, res, next) {
+  res.locals.currentUser = req.user;
+  next();
+});
 
 // ROUTES
 
 app.get('/', (req, res) => {
   res.render('landing');
 });
+
+// INDEX
 
 app.get('/campgrounds', (req, res) => {
   // get all campgrounds from database
@@ -95,7 +121,7 @@ app.get('/campgrounds/:id', (req, res) => {
 // COMMENTS ROUTES
 // =======================================
 
-app.get('/campgrounds/:id/comments/new', (req, res) => {
+app.get('/campgrounds/:id/comments/new', isLoggedIn, (req, res) => {
   Campground.findById(req.params.id, (err, campground) => {
     if (err) {
       console.log(err);
@@ -105,7 +131,7 @@ app.get('/campgrounds/:id/comments/new', (req, res) => {
   });
 });
 
-app.post('/campgrounds/:id/comments/', (req, res) => {
+app.post('/campgrounds/:id/comments/', isLoggedIn, (req, res) => {
   Campground.findById(req.params.id, (err, campground) => {
     if (err) {
       console.log(err);
@@ -123,6 +149,56 @@ app.post('/campgrounds/:id/comments/', (req, res) => {
     }
   });
 });
+
+// AUTH ROUTES
+
+// show register form
+app.get('/register', (req, res) => {
+  res.render('register');
+});
+
+// handle sign up logic
+app.post('/register', (req, res) => {
+  const newUser = new User({ username: req.body.username });
+  User.register(newUser, req.body.password, (err, user) => {
+    if (err) {
+      console.log(err);
+      return res.render('register');
+    }
+    passport.authenticate('local')(req, res, function() {
+      res.redirect('/campgrounds');
+    });
+  });
+});
+
+// show login form
+app.get('/login', function(req, res) {
+  res.render('login');
+});
+
+// handling login logic
+app.post(
+  '/login',
+  passport.authenticate('local', {
+    successRedirect: '/campgrounds',
+    failureRedirect: '/login',
+  }),
+  function(req, res) {}
+);
+
+// logout route
+app.get('/logout', function(req, res) {
+  req.logOut();
+  res.redirect('/campgrounds');
+});
+
+// middleware
+function isLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/login');
+}
 
 // START Server to listen for requests
 app.listen(port, () => {

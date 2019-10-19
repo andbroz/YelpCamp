@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Campground = require('./models/campground');
 const Comment = require('./models/comment');
+const User = require('./models/user');
 
 const seeds = [
   {
@@ -43,6 +44,8 @@ async function seedDB() {
     console.log('Campgrounds removed');
     await Comment.deleteMany({});
     console.log('Comments removed');
+    // await User.deleteMany({});
+    // console.log('Users removed');
 
     for (const seed of seeds) {
       const campground = await Campground.create(seed);

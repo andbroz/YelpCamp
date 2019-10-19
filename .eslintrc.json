@@ -4,7 +4,8 @@
     "commonjs": true,
     "es6": true
   },
-  "extends": ["eslint:recommended", "airbnb-base"],
+  "extends": ["airbnb", "prettier"],
+  "plugins": ["prettier"],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
@@ -12,5 +13,7 @@
   "parserOptions": {
     "ecmaVersion": 2018
   },
-  "rules": {}
+  "rules": {
+    "prettier/prettier": ["error"]
+  }
 }
