@@ -4,6 +4,14 @@ const Campground = require('../models/campground');
 
 const router = express.Router();
 
+// middleware
+function isLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/login');
+}
+
 // INDEX
 router.get('/', (req, res) => {
   // get all campgrounds from database
@@ -20,15 +28,20 @@ router.get('/', (req, res) => {
 });
 
 // crate campgroud
-router.post('/', (req, res) => {
+router.post('/', isLoggedIn, (req, res) => {
   // get data from form and add to campgrounds
   const { name } = req.body;
   const { image } = req.body;
   const { description } = req.body;
+  const author = {
+    id: req.user._id,
+    username: req.user.username,
+  };
   const newCampground = {
     name,
     image,
     description,
+    author,
   };
 
   // Create a new campground and save to DB
@@ -37,12 +50,13 @@ router.post('/', (req, res) => {
       console.log(err, newlyCreated);
     } else {
       // redirect back to campgrounds page
+
       res.redirect('/campgrounds');
     }
   });
 });
 // new campgroud form
-router.get('/new', (req, res) => {
+router.get('/new', isLoggedIn, (req, res) => {
   res.render('campgrounds/new');
 });
 

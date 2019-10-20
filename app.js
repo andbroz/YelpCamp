@@ -35,7 +35,7 @@ app.use(
   })
 );
 
-seedDB();
+// seedDB(); // seed the database
 
 // PASSPORT CONFIGURATION
 app.use(
