@@ -1,11 +1,12 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-console */
 const express = require('express');
+const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
+const methodOverride = require('method-override');
 
-const bodyParser = require('body-parser');
 // const Campground = require('./models/campground');
 // const Comment = require('./models/comment');
 const User = require('./models/user');
@@ -34,6 +35,7 @@ app.use(
     extended: true,
   })
 );
+app.use(methodOverride('_method'));
 
 // seedDB(); // seed the database
 
