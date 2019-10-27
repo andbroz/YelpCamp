@@ -3,6 +3,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const flash = require('connect-flash');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const methodOverride = require('method-override');
@@ -36,6 +37,7 @@ app.use(
   })
 );
 app.use(methodOverride('_method'));
+app.use(flash());
 
 // seedDB(); // seed the database
 
