@@ -51,6 +51,7 @@ router.post('/', middleware.isLoggedIn, (req, res) => {
     }
   });
 });
+
 // new campgroud form
 router.get('/new', middleware.isLoggedIn, (req, res) => {
   res.render('campgrounds/new');
@@ -62,7 +63,7 @@ router.get('/:id', (req, res) => {
   Campground.findById(id)
     .populate('comments')
     .exec((err, foundCampground) => {
-      if (err) {
+      if (err || !foundCampground) {
         console.log(err);
       } else {
         res.render('campgrounds/show', {
